@@ -619,25 +619,6 @@ export function AnimatedAIChat() {
                     layoutId="button-highlight"
                   />
                 </motion.button>
-                <motion.button
-                  type="button"
-                  data-command-button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowCommandPalette(prev => !prev);
-                  }}
-                  whileTap={{ scale: 0.94 }}
-                  className={cn(
-                    "p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors relative group",
-                    showCommandPalette && "bg-accent text-foreground"
-                  )}
-                >
-                  <Command className="w-4 h-4" />
-                  <motion.span
-                    className="absolute inset-0 bg-accent/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                    layoutId="button-highlight"
-                  />
-                </motion.button>
               </div>
               
               <motion.button
@@ -663,34 +644,6 @@ export function AnimatedAIChat() {
               </motion.button>
             </div>
           </motion.div>
-
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {commandSuggestions.map((suggestion, index) => (
-              <motion.button
-                key={suggestion.prefix}
-                onClick={() => selectCommandSuggestion(index)}
-                className="flex items-center gap-2 px-3 py-2 bg-accent/20 hover:bg-accent/50 rounded-lg text-sm text-foreground/60 hover:text-foreground/90 transition-all relative group"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                {suggestion.icon}
-                <span>{suggestion.label}</span>
-                <motion.div
-                  className="absolute inset-0 border border-border rounded-lg"
-                  initial={false}
-                  animate={{
-                    opacity: [0, 1],
-                    scale: [0.98, 1],
-                  }}
-                  transition={{
-                    duration: 0.3,
-                    ease: "easeOut",
-                  }}
-                />
-              </motion.button>
-            ))}
-          </div>
         </motion.div>
       </div>
 
