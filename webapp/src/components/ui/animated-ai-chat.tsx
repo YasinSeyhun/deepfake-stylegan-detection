@@ -9,13 +9,13 @@ import {
   XIcon,
   LoaderIcon,
   Sparkles,
-  Command,
   ImageIcon,
   Figma,
   MonitorIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 interface UseAutoResizeTextareaProps {
   minHeight: number;
@@ -287,6 +287,9 @@ export function AnimatedAIChat() {
   const [inputFocused, setInputFocused] = useState(false);
   const commandPaletteRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<{id: number, message: string, sender: "user" | "bot"}[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const commandSuggestions: CommandSuggestion[] = [
     { 
@@ -421,8 +424,44 @@ export function AnimatedAIChat() {
   };
 
   const handleAttachFile = () => {
-    const mockFileName = `dosya-${Math.floor(Math.random() * 1000)}.pdf`;
-    setAttachments(prev => [...prev, mockFileName]);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      // Görseli base64 olarak oku
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        router.push(
+          `/results?label=${data.result}&score=${data.score}&imageUrl=${encodeURIComponent(imageUrl)}`
+        );
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          message: "Bir hata oluştu!",
+          sender: "bot",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeAttachment = (index: number) => {
@@ -607,6 +646,13 @@ export function AnimatedAIChat() {
 
             <div className="p-4 border-t border-border flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
                 <motion.button
                   type="button"
                   onClick={handleAttachFile}
@@ -682,6 +728,12 @@ export function AnimatedAIChat() {
             mass: 0.5,
           }}
         />
+      )}
+
+      {loading && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-background/80 px-6 py-3 rounded-lg shadow-lg border border-border z-50">
+          <span className="text-lg font-semibold text-primary">Analyzer Your Photos...</span>
+        </div>
       )}
     </div>
   );
