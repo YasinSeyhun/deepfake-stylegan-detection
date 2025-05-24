@@ -431,16 +431,28 @@ export function AnimatedAIChat() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      alert("Lütfen bir dosya seçin.");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      alert("Yalnızca görsel dosyası yükleyebilirsiniz.");
+      return;
+    }
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
+    console.log("Gönderilen dosya:", file);
+    for (const [key, value] of formData.entries()) {
+      console.log(`FormData -> ${key}:`, value);
+    }
     try {
       const res = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         body: formData,
       });
       const data = await res.json();
+      console.log("API yanıtı:", data);
       // Görseli base64 olarak oku
       const reader = new FileReader();
       reader.onloadend = () => {

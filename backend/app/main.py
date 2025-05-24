@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.model.detector import load_trained_detector, LABELS
 from app.utils.image_utils import read_imagefile
@@ -26,6 +26,8 @@ preprocess = transforms.Compose([
 
 @app.post("/analyze")
 async def analyze_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Yalnızca görsel dosyası yükleyebilirsiniz.")
     image = read_imagefile(file)
     input_tensor = preprocess(image).unsqueeze(0).to(device)
     with torch.no_grad():
